@@ -9,7 +9,12 @@ export interface OfflineQuizSubmission {
   timeSpent: number;
   timestamp: number;
   token: string;
-  data: Record<string, unknown>;
+  data: {
+    quizId: string;
+    answers: number[];
+    score: number;
+    timeSpent: number;
+  };
 }
 
 export interface OfflineQuiz {

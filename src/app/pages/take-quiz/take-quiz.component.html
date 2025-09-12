@@ -176,7 +176,7 @@
       <div class="score-header">
         <h3>Quiz Complete!</h3>
         <div class="score-circle">
-          <span class="score-percentage">{{ ((score / quizzes.length) * 100).toFixed(0) }}%</span>
+          <span class="score-percentage">{{ getScorePercentage() }}%</span>
         </div>
       </div>
       
@@ -186,7 +186,7 @@
           <span class="score-text">Correct Answers</span>
         </div>
         <div class="score-item">
-          <span class="score-value">{{ quizzes.length }}</span>
+          <span class="score-value">{{ getTotalQuestions() }}</span>
           <span class="score-text">Total Questions</span>
         </div>
         <div class="score-item" *ngIf="timeSpent > 0">

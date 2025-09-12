@@ -153,7 +153,7 @@ export class QuizApiService {
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.post(`${this.API_BASE_URL}/quiz-submissions`, submission, { headers }).pipe(
+    return this.http.post<{ success: boolean; message: string }>(`${this.API_BASE_URL}/quiz-submissions`, submission, { headers }).pipe(
       catchError((error) => {
         // If offline, save to offline storage
         if (!navigator.onLine || error.status === 0) {
@@ -165,7 +165,7 @@ export class QuizApiService {
   }
 
   // Save submission offline
-  private saveOfflineSubmission(submission: QuizSubmission, token: string): Observable<{ success: boolean }> {
+  private saveOfflineSubmission(submission: QuizSubmission, token: string): Observable<{ success: boolean; message: string }> {
     return new Observable(observer => {
       this.offlineStorage.saveOfflineSubmission({
         quizId: submission.quizId,
@@ -174,9 +174,14 @@ export class QuizApiService {
         timeSpent: submission.timeSpent,
         timestamp: Date.now(),
         token,
-        data: submission
+        data: {
+          quizId: submission.quizId,
+          answers: submission.answers,
+          score: submission.score,
+          timeSpent: submission.timeSpent
+        }
       }).then(() => {
-        observer.next({ message: 'Submission saved offline', offline: true });
+        observer.next({ success: true, message: 'Submission saved offline' });
         observer.complete();
       }).catch(error => {
         observer.error(error);

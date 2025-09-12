@@ -210,10 +210,14 @@ export class TakeQuizComponent implements OnInit, OnDestroy {
       console.log('Selected quiz found:', selectedQuiz);
       if (selectedQuiz) {
         this.selectedQuiz = selectedQuiz;
-        this.quizzes = selectedQuiz.questions;
+        this.quizzes = [...selectedQuiz.questions]; // Create a copy to avoid reference issues
         console.log('Loaded questions:', this.quizzes);
+        console.log('Number of questions loaded:', this.quizzes.length);
+        console.log('Selected quiz ID:', selectedQuiz._id);
+        console.log('Selected quiz name:', selectedQuiz.name);
         this.answers = new Array(this.quizzes.length).fill(-1);
         this.score = null;
+        console.log('Answers array initialized with length:', this.answers.length);
         
         // Set up timer if quiz has time limit
         this.timeLimit = selectedQuiz.timeLimit || 0;
@@ -270,13 +274,39 @@ export class TakeQuizComponent implements OnInit, OnDestroy {
     this.quizTimerService.stopTimer();
     this.timeSpent = Math.floor((Date.now() - this.quizStartTime) / 1000);
     
+    console.log('Submitting quiz...');
+    console.log('Quizzes length:', this.quizzes.length);
+    console.log('Answers length:', this.answers.length);
+    console.log('Quizzes:', this.quizzes);
+    console.log('Answers:', this.answers);
+    
+    // Safety check to ensure arrays are the same length
+    if (this.quizzes.length !== this.answers.length) {
+      console.error('Mismatch between quizzes and answers length!');
+      console.error('Quizzes length:', this.quizzes.length);
+      console.error('Answers length:', this.answers.length);
+      return;
+    }
+    
     let correct = 0;
     this.quizzes.forEach((quiz, index) => {
+      console.log(`Question ${index + 1}:`, {
+        question: quiz.question,
+        userAnswer: this.answers[index],
+        correctAnswer: quiz.correctAnswer,
+        isCorrect: this.answers[index] === quiz.correctAnswer
+      });
       if (this.answers[index] === quiz.correctAnswer) {
         correct++;
       }
     });
-    this.score = correct;
+    
+    console.log('Total correct answers:', correct);
+    console.log('Total questions:', this.quizzes.length);
+    console.log('Score percentage:', (correct / this.quizzes.length) * 100);
+    
+    // Safety check to ensure score is not greater than total questions
+    this.score = Math.min(correct, this.quizzes.length);
   }
 
   reset() {
@@ -295,6 +325,24 @@ export class TakeQuizComponent implements OnInit, OnDestroy {
 
   // Timer methods
 
+
+  getScorePercentage(): string {
+    if (this.score === null || this.quizzes.length === 0) return '0';
+    
+    const percentage = (this.score / this.quizzes.length) * 100;
+    console.log('Calculating percentage:', {
+      score: this.score,
+      totalQuestions: this.quizzes.length,
+      percentage: percentage
+    });
+    
+    return Math.min(percentage, 100).toFixed(0);
+  }
+
+  getTotalQuestions(): number {
+    console.log('Getting total questions:', this.quizzes.length);
+    return this.quizzes.length;
+  }
 
   getPerformanceFeedback(): string {
     if (!this.score || !this.quizzes.length) return '';
