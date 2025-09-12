@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { PwaService } from './pwa.service';
 
 export interface ShareableQuiz {
@@ -361,7 +361,7 @@ export class QuizSharingService {
           const quiz = JSON.parse(e.target?.result as string);
           observer.next(quiz);
           observer.complete();
-        } catch (error) {
+        } catch {
           observer.error(new Error('Invalid JSON file'));
         }
       };

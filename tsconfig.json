@@ -19,6 +19,16 @@
     "skipLibCheck": true,
     "useDefineForClassFields": false
   },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "cypress",
+    "**/*.spec.ts",
+    "**/*.cy.ts"
+  ],
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
     "strictInjectionParameters": true

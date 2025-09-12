@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, interval, Subscription } from 'rxjs';
-import { map, takeWhile } from 'rxjs/operators';
+import { takeWhile } from 'rxjs/operators';
 
 export interface TimerState {
   timeRemaining: number;

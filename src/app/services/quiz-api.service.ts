@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { OfflineStorageService } from './offline-storage.service';
 
@@ -142,7 +142,7 @@ export class QuizApiService {
   }
 
   // Submit quiz with offline support
-  submitQuiz(submission: QuizSubmission): Observable<any> {
+  submitQuiz(submission: QuizSubmission): Observable<{ success: boolean; message: string }> {
     const token = localStorage.getItem('token');
     if (!token) {
       return throwError(() => new Error('No authentication token found'));
@@ -165,7 +165,7 @@ export class QuizApiService {
   }
 
   // Save submission offline
-  private saveOfflineSubmission(submission: QuizSubmission, token: string): Observable<any> {
+  private saveOfflineSubmission(submission: QuizSubmission, token: string): Observable<{ success: boolean }> {
     return new Observable(observer => {
       this.offlineStorage.saveOfflineSubmission({
         quizId: submission.quizId,

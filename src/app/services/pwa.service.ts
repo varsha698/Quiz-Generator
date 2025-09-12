@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 export interface PWAInstallPrompt {
   prompt: () => Promise<void>;
@@ -96,7 +96,7 @@ export class PwaService {
     // Check if app is running in standalone mode (PWA)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator as any).standalone;
+    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator as { standalone?: boolean }).standalone;
 
     this.isInstalledSubject.next(isStandalone || (isIOS && isInStandaloneMode));
   }

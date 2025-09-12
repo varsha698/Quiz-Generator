@@ -43,7 +43,7 @@ export default [{
         sourceType: "script",
 
         parserOptions: {
-            project: ["tsconfig.*?.json"],
+            project: ["./tsconfig.json", "./tsconfig.app.json"],
             createDefaultProgram: true,
         },
     },

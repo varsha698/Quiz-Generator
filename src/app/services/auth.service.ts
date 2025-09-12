@@ -104,7 +104,7 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  updateProfile(profileData: any): Observable<{ user: User }> {
+  updateProfile(profileData: Record<string, unknown>): Observable<{ user: User }> {
     return this.http.put<{ user: User }>(`${this.API_URL}/profile`, profileData)
       .pipe(
         tap(response => {
@@ -114,8 +114,8 @@ export class AuthService {
       );
   }
 
-  getUserStats(): Observable<{ stats: any }> {
-    return this.http.get<{ stats: any }>(`${this.API_URL}/stats`);
+  getUserStats(): Observable<{ stats: Record<string, unknown> }> {
+    return this.http.get<{ stats: Record<string, unknown> }>(`${this.API_URL}/stats`);
   }
 
   private setAuthData(token: string, user: User): void {

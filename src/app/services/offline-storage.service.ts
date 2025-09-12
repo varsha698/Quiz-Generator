@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 export interface OfflineQuizSubmission {
   id: string;
   quizId: string;
-  answers: any[];
+  answers: number[];
   score: number;
   timeSpent: number;
   timestamp: number;
   token: string;
-  data: any;
+  data: Record<string, unknown>;
 }
 
 export interface OfflineQuiz {
@@ -17,7 +17,11 @@ export interface OfflineQuiz {
   name: string;
   title?: string;
   description: string;
-  questions: any[];
+  questions: Array<{
+    question: string;
+    options: string[];
+    correctAnswer: number;
+  }>;
   category: string;
   difficulty: string;
   timeLimit: number;
@@ -81,7 +85,7 @@ export class OfflineStorageService {
 
         // Create user data store
         if (!db.objectStoreNames.contains('userData')) {
-          const userDataStore = db.createObjectStore('userData', { keyPath: 'key' });
+          db.createObjectStore('userData', { keyPath: 'key' });
         }
 
         console.log('IndexedDB upgraded');
@@ -267,7 +271,7 @@ export class OfflineStorageService {
   }
 
   // User Data Methods
-  public async saveUserData(key: string, data: any): Promise<void> {
+  public async saveUserData(key: string, data: Record<string, unknown>): Promise<void> {
     if (!this.db) return;
 
     return new Promise((resolve, reject) => {
@@ -280,7 +284,7 @@ export class OfflineStorageService {
     });
   }
 
-  public async getUserData(key: string): Promise<any> {
+  public async getUserData(key: string): Promise<Record<string, unknown> | null> {
     if (!this.db) return null;
 
     return new Promise((resolve, reject) => {
