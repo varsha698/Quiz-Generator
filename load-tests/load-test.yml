@@ -1,0 +1,58 @@
+config:
+  target: 'http://localhost:4000'
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 10
+      name: "Ramp up load"
+    - duration: 300
+      arrivalRate: 20
+      name: "Sustained load"
+    - duration: 60
+      arrivalRate: 5
+      name: "Ramp down"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Quiz API Load Test"
+    weight: 70
+    flow:
+      - get:
+          url: "/api/quizzes"
+      - post:
+          url: "/api/quizzes/generate"
+          json:
+            text: "This is a test quiz about JavaScript programming language."
+            category: "General"
+            difficulty: "Medium"
+            numQuestions: 5
+      - get:
+          url: "/api/quizzes"
+      - post:
+          url: "/api/quizzes/submit"
+          json:
+            quizId: "{{ quizId }}"
+            answers: [0, 1, 2, 0, 1]
+            score: 80
+            timeSpent: 120
+
+  - name: "File Upload Load Test"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/quizzes/upload"
+          formData:
+            files: "@test-files/sample.pdf"
+            category: "General"
+            difficulty: "Medium"
+            numQuestions: 3
+
+  - name: "Health Check Load Test"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"

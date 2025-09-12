@@ -1,15 +1,43 @@
-FROM node:alpine AS builder
+# Multi-stage build for Angular application
+FROM node:18-alpine AS builder
 
-WORKDIR /usr/src/app
+# Set working directory
+WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package*.json ./
+COPY angular.json ./
+COPY tsconfig*.json ./
 
-RUN npm install
+# Install dependencies
+RUN npm ci --only=production
 
-COPY . .
+# Copy source code
+COPY src/ ./src/
+COPY .angular/ ./.angular/
 
-RUN npm run build --prod
+# Build the application
+RUN npm run build:prod
 
+# Production stage
 FROM nginx:alpine
 
-COPY --from=builder /usr/src/app/dist/angular-starter/ /usr/share/nginx/html
+# Copy built application
+COPY --from=builder /app/dist/quizmaster /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy PWA files
+COPY manifest.json /usr/share/nginx/html/
+COPY sw.js /usr/share/nginx/html/
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/ || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

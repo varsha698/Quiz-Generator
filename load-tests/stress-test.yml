@@ -1,0 +1,59 @@
+config:
+  target: 'http://localhost:4000'
+  phases:
+    - duration: 30
+      arrivalRate: 1
+      name: "Baseline"
+    - duration: 60
+      arrivalRate: 5
+      name: "Ramp up"
+    - duration: 120
+      arrivalRate: 10
+      name: "Stress test"
+    - duration: 60
+      arrivalRate: 20
+      name: "Peak load"
+    - duration: 30
+      arrivalRate: 1
+      name: "Cool down"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "High Load Quiz Generation"
+    weight: 50
+    flow:
+      - loop:
+          - post:
+              url: "/api/quizzes/generate"
+              json:
+                text: "Stress test content for quiz generation {{ $randomString() }}"
+                category: "General"
+                difficulty: "Medium"
+                numQuestions: 3
+          count: 5
+
+  - name: "Concurrent File Uploads"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/quizzes/upload"
+          formData:
+            files: "@test-files/stress-test.pdf"
+            category: "General"
+            difficulty: "Hard"
+            numQuestions: 5
+
+  - name: "Database Intensive Operations"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/quizzes"
+      - post:
+          url: "/api/quizzes/submit"
+          json:
+            quizId: "{{ $randomString() }}"
+            answers: [0, 1, 2, 0, 1, 2, 0, 1, 2, 0]
+            score: {{ $randomInt(0, 100) }}
+            timeSpent: {{ $randomInt(60, 600) }}

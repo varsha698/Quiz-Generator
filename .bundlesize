@@ -1,0 +1,22 @@
+[
+  {
+    "path": "./dist/main.js",
+    "maxSize": "500 kB",
+    "compression": "gzip"
+  },
+  {
+    "path": "./dist/styles.css",
+    "maxSize": "200 kB",
+    "compression": "gzip"
+  },
+  {
+    "path": "./dist/polyfills.js",
+    "maxSize": "50 kB",
+    "compression": "gzip"
+  },
+  {
+    "path": "./dist/vendor.js",
+    "maxSize": "300 kB",
+    "compression": "gzip"
+  }
+]
