@@ -1,0 +1,281 @@
+<div class="quiz-generator-container">
+  <div class="header-section">
+    <h1>AI Quiz Generator</h1>
+    <p>Generate quizzes from text or upload files (PDFs, images) and let AI create engaging questions for you</p>
+    
+    <!-- Mode Selection -->
+    <div class="mode-selector">
+      <button 
+        class="mode-btn" 
+        [class.active]="uploadMode === 'text'"
+        (click)="switchMode('text')"
+        [disabled]="isGenerating"
+      >
+        📝 Text Input
+      </button>
+      <button 
+        class="mode-btn" 
+        [class.active]="uploadMode === 'file'"
+        (click)="switchMode('file')"
+        [disabled]="isGenerating"
+      >
+        📁 File Upload
+      </button>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <!-- Text Input Mode -->
+    <div *ngIf="uploadMode === 'text'" class="input-group">
+      <label for="textInput" class="input-label">Your Text Content</label>
+      <textarea 
+        id="textInput"
+        [(ngModel)]="inputText" 
+        rows="8" 
+        placeholder="Paste your text here... (e.g., article, notes, study material)"
+        class="text-input"
+        [disabled]="isGenerating"
+      ></textarea>
+    </div>
+
+    <!-- File Upload Mode -->
+    <div *ngIf="uploadMode === 'file'" class="file-upload-section">
+      <div class="file-drop-zone" 
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)"
+           [class.drag-over]="false">
+        <div class="drop-zone-content">
+          <div class="upload-icon">📁</div>
+          <h3>Drop files here or click to browse</h3>
+          <p>Supported formats: PDF, JPG, PNG, GIF, BMP, WebP</p>
+          <p class="file-size-limit">Maximum file size: 10MB per file</p>
+          <input 
+            type="file" 
+            #fileInput
+            (change)="onFileSelected($event)"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+            class="file-input"
+            [disabled]="isGenerating"
+          >
+          <button 
+            type="button" 
+            class="browse-btn"
+            (click)="fileInput.click()"
+            [disabled]="isGenerating"
+          >
+            Browse Files
+          </button>
+        </div>
+      </div>
+
+      <!-- Selected Files List -->
+      <div *ngIf="selectedFiles.length > 0" class="selected-files">
+        <h4>Selected Files ({{ selectedFiles.length }})</h4>
+        <div class="file-list">
+          <div *ngFor="let file of selectedFiles; let i = index" class="file-item">
+            <div class="file-info">
+              <span class="file-icon">{{ getFileIcon(file) }}</span>
+              <div class="file-details">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">{{ formatFileSize(file.size) }}</span>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              class="remove-file-btn"
+              (click)="removeFile(i)"
+              [disabled]="isGenerating"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+        <button 
+          type="button" 
+          class="clear-files-btn"
+          (click)="clearFiles()"
+          [disabled]="isGenerating"
+        >
+          Clear All Files
+        </button>
+      </div>
+    </div>
+      
+      <div class="quiz-settings">
+        <div class="setting-row">
+          <div class="setting-group">
+            <label for="numQuestions" class="setting-label">Number of Questions:</label>
+            <select 
+              id="numQuestions"
+              [(ngModel)]="numQuestions" 
+              class="question-select"
+              [disabled]="isGenerating"
+            >
+              <option value="2">2 Questions</option>
+              <option value="3">3 Questions</option>
+              <option value="4">4 Questions</option>
+              <option value="5">5 Questions</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label for="category" class="setting-label">Category:</label>
+            <select 
+              id="category"
+              [(ngModel)]="selectedCategory" 
+              class="question-select"
+              [disabled]="isGenerating"
+            >
+              <option value="General">General</option>
+              <option value="Science">Science</option>
+              <option value="History">History</option>
+              <option value="Math">Math</option>
+              <option value="Literature">Literature</option>
+              <option value="Geography">Geography</option>
+              <option value="Sports">Sports</option>
+              <option value="Technology">Technology</option>
+              <option value="Art">Art</option>
+              <option value="Music">Music</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-group">
+            <label for="difficulty" class="setting-label">Difficulty:</label>
+            <select 
+              id="difficulty"
+              [(ngModel)]="selectedDifficulty" 
+              class="question-select"
+              [disabled]="isGenerating"
+            >
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label for="timeLimit" class="setting-label">Time Limit (min):</label>
+            <input 
+              type="number" 
+              id="timeLimit"
+              [(ngModel)]="timeLimit" 
+              class="question-select"
+              placeholder="No limit"
+              min="1"
+              max="60"
+              [disabled]="isGenerating"
+            />
+          </div>
+        </div>
+        <div class="setting-group">
+          <label for="tags" class="setting-label">Tags (comma-separated):</label>
+          <input 
+            type="text" 
+            id="tags"
+            [(ngModel)]="quizTags" 
+            class="question-select"
+            placeholder="e.g., beginner, advanced, fun"
+            [disabled]="isGenerating"
+          />
+        </div>
+      </div>
+      
+      <div class="input-footer">
+        <span *ngIf="uploadMode === 'text'" class="char-count">{{ inputText.length }} characters</span>
+        <span *ngIf="uploadMode === 'file'" class="file-count">{{ selectedFiles.length }} files selected</span>
+        
+        <!-- Upload Progress -->
+        <div *ngIf="isUploading" class="upload-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+          </div>
+          <span class="progress-text">Processing files... {{ uploadProgress.toFixed(0) }}%</span>
+        </div>
+        
+        <button 
+          (click)="generateQuiz()" 
+          [disabled]="(uploadMode === 'text' && !inputText.trim()) || (uploadMode === 'file' && selectedFiles.length === 0) || isGenerating || isUploading"
+          class="btn btn-primary btn-generate"
+        >
+          <span *ngIf="!isGenerating && !isUploading">
+            🤖 Generate Quiz with AI
+          </span>
+          <span *ngIf="isGenerating && !isUploading">
+            ⏳ AI is generating...
+          </span>
+          <span *ngIf="isUploading">
+            📁 Processing files...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="allQuizzes.length > 0" class="quiz-preview-section">
+    <div class="section-header">
+      <h2>All Generated Quizzes</h2>
+      <div class="quiz-stats">
+        <span class="stat">{{ allQuizzes.length }} Quiz{{ allQuizzes.length > 1 ? 'es' : '' }}</span>
+        <span class="stat">Multiple Choice</span>
+        <span class="stat">{{ isConnected ? 'MongoDB Connected' : 'MongoDB Disconnected' }}</span>
+      </div>
+    </div>
+    
+    <div class="all-quizzes-container">
+      <div *ngFor="let quiz of allQuizzes; let quizIndex = index" class="quiz-container">
+        <div class="quiz-header">
+          <h3>{{ quiz.name }}</h3>
+          <div class="quiz-meta">
+            <span class="quiz-question-count">{{ quiz.questions.length }} Questions</span>
+            <span class="quiz-category">{{ quiz.category }}</span>
+            <span class="quiz-difficulty" [class]="'difficulty-' + quiz.difficulty?.toLowerCase()">{{ quiz.difficulty }}</span>
+            <span class="quiz-points">{{ quiz.points }} pts</span>
+            <span class="quiz-date">{{ quiz.createdAt | date:'short' }}</span>
+          </div>
+          <div class="quiz-tags" *ngIf="quiz.tags && quiz.tags.length > 0">
+            <span *ngFor="let tag of quiz.tags" class="tag">{{ tag }}</span>
+          </div>
+        </div>
+        
+        <div class="quiz-questions">
+          <div *ngFor="let q of quiz.questions; let i = index" class="question-card">
+            <div class="question-header">
+              <span class="question-number">{{ i + 1 }}</span>
+              <h4 class="question-text">{{ q.question }}</h4>
+            </div>
+            
+            <div class="options-list">
+              <div *ngFor="let opt of q.options; let j = index" 
+                   class="option-item"
+                   [class.correct-answer]="j === q.correctAnswer">
+                <span class="option-letter">{{ getOptionLetter(j) }}</span>
+                <span class="option-text">{{ opt }}</span>
+                <span *ngIf="j === q.correctAnswer" class="correct-badge">✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="individual-quiz-actions">
+          <button class="btn btn-primary btn-sm" (click)="saveIndividualQuiz(quiz, quizIndex)">
+            💾 Update Quiz
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="deleteQuiz(quiz._id!)">
+            🗑️ Delete Quiz
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz-actions">
+      <button class="btn btn-secondary" (click)="clearAllQuizzes()">Clear All Quizzes</button>
+      <button class="btn btn-primary" (click)="loadQuizzes()">Refresh Quizzes</button>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    <span class="error-icon">⚠️</span>
+    {{ errorMessage }}
+  </div>
+</div>

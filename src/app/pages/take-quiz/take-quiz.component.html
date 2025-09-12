@@ -1,0 +1,215 @@
+<div class="take-quiz-container">
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading quizzes...</p>
+  </div>
+
+  <div *ngIf="!loading && availableQuizzes.length > 0 && quizzes.length === 0" class="quiz-selection">
+    <div class="quiz-header">
+      <h2>Select a Quiz to Take</h2>
+      <p>Choose from your saved quizzes below</p>
+    </div>
+
+    <div class="search-filters">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          placeholder="Search quizzes..."
+          class="search-input"
+          (input)="filterQuizzes()"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+      
+      <div class="filter-controls">
+        <select [(ngModel)]="selectedCategory" (change)="filterQuizzes()" class="filter-select">
+          <option value="">All Categories</option>
+          <option value="General">General</option>
+          <option value="Science">Science</option>
+          <option value="History">History</option>
+          <option value="Math">Math</option>
+          <option value="Literature">Literature</option>
+          <option value="Geography">Geography</option>
+          <option value="Sports">Sports</option>
+          <option value="Technology">Technology</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Other">Other</option>
+        </select>
+        
+        <select [(ngModel)]="selectedDifficulty" (change)="filterQuizzes()" class="filter-select">
+          <option value="">All Difficulties</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+        
+        <select [(ngModel)]="sortBy" (change)="filterQuizzes()" class="filter-select">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="name">Name A-Z</option>
+          <option value="questions">Most Questions</option>
+          <option value="points">Most Points</option>
+        </select>
+      </div>
+      
+      <div class="filter-tags" *ngIf="availableTags.length > 0">
+        <span class="tag-label">Filter by tags:</span>
+        <div class="tag-list">
+          <span 
+            *ngFor="let tag of availableTags" 
+            class="tag-filter"
+            [class.active]="selectedTags.includes(tag)"
+            (click)="toggleTag(tag)"
+          >
+            {{ tag }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz-stats" *ngIf="filteredQuizzes.length !== availableQuizzes.length">
+      <span>Showing {{ filteredQuizzes.length }} of {{ availableQuizzes.length }} quizzes</span>
+    </div>
+
+    <div class="quiz-list">
+      <div *ngFor="let availableQuiz of filteredQuizzes" 
+           class="quiz-item"
+           [class.selected]="selectedQuizKey === availableQuiz._id"
+           (click)="selectQuiz(availableQuiz._id!)">
+        <div class="quiz-info">
+          <div class="quiz-title-section">
+            <h3>{{ availableQuiz.name }}</h3>
+            <div class="quiz-meta">
+              <span class="quiz-category">{{ availableQuiz.category }}</span>
+              <span class="quiz-difficulty" [class]="'difficulty-' + availableQuiz.difficulty?.toLowerCase()">
+                {{ availableQuiz.difficulty }}
+              </span>
+              <span class="quiz-points">{{ availableQuiz.points }} pts</span>
+            </div>
+          </div>
+          <div class="quiz-details">
+            <p>{{ availableQuiz.questions.length }} Questions</p>
+            <p class="quiz-date">{{ availableQuiz.createdAt | date:'short' }}</p>
+            <div class="quiz-tags" *ngIf="availableQuiz.tags && availableQuiz.tags.length > 0">
+              <span *ngFor="let tag of availableQuiz.tags" class="tag">{{ tag }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" 
+                (click)="loadSelectedQuiz(); $event.stopPropagation()"
+                [disabled]="!selectedQuizKey">
+          {{ selectedQuizKey === availableQuiz._id ? 'Take Quiz' : 'Select First' }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="filteredQuizzes.length === 0" class="no-results">
+      <h3>No quizzes found</h3>
+      <p>Try adjusting your search criteria or filters</p>
+      <button class="btn btn-secondary" (click)="clearFilters()">Clear Filters</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && quizzes.length > 0" class="quiz-card">
+    <div class="quiz-header">
+      <div class="quiz-title-section">
+        <h2>Taking: {{ getSelectedQuizName() }}</h2>
+        <p>Answer all questions and submit to see your score!</p>
+      </div>
+      <div class="quiz-timer" *ngIf="timeLimit > 0">
+        <div class="timer-display" [class.timer-warning]="isTimeWarning()" [class.timer-critical]="timerState.timeRemaining <= 30">
+          <span class="timer-icon">⏱️</span>
+          <span class="timer-text">{{ getFormattedTime(timerState.timeRemaining) }}</span>
+        </div>
+        <div class="timer-progress">
+          <mat-progress-bar 
+            mode="determinate" 
+            [value]="getTimerProgress()"
+            [color]="isTimeWarning() ? 'warn' : 'primary'">
+          </mat-progress-bar>
+        </div>
+        <div class="timer-controls" *ngIf="timerState.isRunning || timerState.isPaused">
+          <button 
+            type="button" 
+            class="timer-btn" 
+            (click)="timerState.isPaused ? resumeTimer() : pauseTimer()"
+            [class.pause-btn]="timerState.isRunning"
+            [class.resume-btn]="timerState.isPaused">
+            {{ timerState.isPaused ? '▶️ Resume' : '⏸️ Pause' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <form class="quiz-form" (ngSubmit)="submitQuiz()">
+      <div *ngFor="let quiz of quizzes; let i = index" class="question-card">
+        <h3 class="question-text">{{ i + 1 }}. {{ quiz.question }}</h3>
+        
+        <div class="radio-group">
+          <div *ngFor="let option of quiz.options; let j = index" 
+               class="radio-option"
+               [class.selected]="answers[i] === j">
+            <input 
+              type="radio" 
+              [id]="'q' + i + 'o' + j"
+              [name]="'question' + i"
+              [value]="j"
+              [(ngModel)]="answers[i]"
+              class="radio-input"
+            >
+            <label [for]="'q' + i + 'o' + j" class="option-text">
+              {{ getOptionLetter(j) }}) {{ option }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-actions">
+        <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
+        <button type="submit" class="btn btn-primary">Submit Quiz</button>
+      </div>
+    </form>
+
+    <div *ngIf="score !== null" class="score-card">
+      <div class="score-header">
+        <h3>Quiz Complete!</h3>
+        <div class="score-circle">
+          <span class="score-percentage">{{ ((score / quizzes.length) * 100).toFixed(0) }}%</span>
+        </div>
+      </div>
+      
+      <div class="score-details">
+        <div class="score-item">
+          <span class="score-value">{{ score }}</span>
+          <span class="score-text">Correct Answers</span>
+        </div>
+        <div class="score-item">
+          <span class="score-value">{{ quizzes.length }}</span>
+          <span class="score-text">Total Questions</span>
+        </div>
+        <div class="score-item" *ngIf="timeSpent > 0">
+          <span class="score-value">{{ getFormattedTime(timeSpent) }}</span>
+          <span class="score-text">Time Spent</span>
+        </div>
+      </div>
+
+      <div class="performance-feedback">
+        <p class="feedback-text">{{ getPerformanceFeedback() }}</p>
+      </div>
+
+      <div class="score-actions">
+        <button class="btn btn-primary" (click)="reset()">Take Again</button>
+        <button class="btn btn-secondary" (click)="goToQuizSelection()">Back to Quizzes</button>
+        <button class="btn btn-outline" (click)="shareScore()">Share Score</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && availableQuizzes.length === 0" class="empty-state">
+    <h3>No Quizzes Available</h3>
+    <p>Please generate and save some quizzes first in the Quiz Generator section.</p>
+    <a routerLink="/quiz-generator" class="btn btn-primary">Generate Quiz</a>
+  </div>
+</div>

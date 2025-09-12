@@ -1,0 +1,43 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <h2>QuizMaster</h2>
+    </div>
+    <div class="nav-links">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
+      <a routerLink="/quiz-generator" routerLinkActive="active" class="nav-link">Quiz Generator</a>
+      <a routerLink="/take-quiz" routerLinkActive="active" class="nav-link">Take Quiz</a>
+      <a routerLink="/leaderboard" routerLinkActive="active" class="nav-link">Leaderboard</a>
+    </div>
+    <div class="nav-auth" *ngIf="!authService.isAuthenticated()">
+      <a routerLink="/login" class="auth-link">Login</a>
+      <a routerLink="/register" class="auth-link auth-link-primary">Sign Up</a>
+    </div>
+    <div class="nav-user" *ngIf="authService.isAuthenticated()">
+      <div class="user-info">
+        <span class="username">{{ authService.getCurrentUser()?.username }}</span>
+        <div class="user-menu">
+          <button class="user-menu-toggle" (click)="toggleUserMenu()">
+            <span class="user-avatar">{{ getInitials() }}</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="user-dropdown" [class.show]="showUserMenu">
+            <a routerLink="/profile" (click)="closeUserMenu()">Profile</a>
+            <a routerLink="/my-quizzes" (click)="closeUserMenu()">My Quizzes</a>
+            <a routerLink="/stats" (click)="closeUserMenu()">Statistics</a>
+            <hr>
+            <a (click)="logout()" class="logout-link">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- PWA Components -->
+<app-pwa-install></app-pwa-install>
+<app-offline-indicator></app-offline-indicator>

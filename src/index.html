@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>QuizMaster - AI-Powered Quiz Platform</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="description" content="Create and take AI-generated quizzes with advanced features, categories, timers, and analytics." />
+    <meta name="keywords" content="quiz, AI, education, learning, assessment, gamification" />
+    <meta name="author" content="QuizMaster Team" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#ffd700" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="QuizMaster" />
+    <meta name="msapplication-TileColor" content="#ffd700" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://quizmaster.app/" />
+    <meta property="og:title" content="QuizMaster - AI-Powered Quiz Platform" />
+    <meta property="og:description" content="Create and take AI-generated quizzes with advanced features, categories, timers, and analytics." />
+    <meta property="og:image" content="/assets/og-image.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://quizmaster.app/" />
+    <meta property="twitter:title" content="QuizMaster - AI-Powered Quiz Platform" />
+    <meta property="twitter:description" content="Create and take AI-generated quizzes with advanced features, categories, timers, and analytics." />
+    <meta property="twitter:image" content="/assets/og-image.png" />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/assets/fonts/roboto-v15-latin-regular.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+    
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" style="display: none;">
+      <div class="install-prompt">
+        <div class="install-content">
+          <h3>Install QuizMaster</h3>
+          <p>Get the full app experience on your device!</p>
+          <div class="install-buttons">
+            <button id="install-button">Install</button>
+            <button id="dismiss-button">Not Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // PWA Install Prompt
+      let deferredPrompt;
+      const installPrompt = document.getElementById('pwa-install-prompt');
+      const installButton = document.getElementById('install-button');
+      const dismissButton = document.getElementById('dismiss-button');
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installPrompt.style.display = 'block';
+      });
+      
+      installButton.addEventListener('click', () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+            }
+            deferredPrompt = null;
+            installPrompt.style.display = 'none';
+          });
+        }
+      });
+      
+      dismissButton.addEventListener('click', () => {
+        installPrompt.style.display = 'none';
+        localStorage.setItem('pwa-install-dismissed', 'true');
+      });
+      
+      // Check if user previously dismissed
+      if (localStorage.getItem('pwa-install-dismissed') === 'true') {
+        installPrompt.style.display = 'none';
+      }
+    </script>
+    
+    <style>
+      #pwa-install-prompt {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        z-index: 10000;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+      
+      .install-prompt {
+        background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+        border: 2px solid #ffd700;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      }
+      
+      .install-content h3 {
+        color: #ffd700;
+        margin: 0 0 0.5rem 0;
+        font-size: 1.2rem;
+      }
+      
+      .install-content p {
+        color: #ccc;
+        margin: 0 0 1rem 0;
+        font-size: 0.9rem;
+      }
+      
+      .install-buttons {
+        display: flex;
+        gap: 0.75rem;
+      }
+      
+      .install-buttons button {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      #install-button {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #000;
+      }
+      
+      #install-button:hover {
+        background: linear-gradient(135deg, #ffed4e, #ffd700);
+        transform: translateY(-1px);
+      }
+      
+      #dismiss-button {
+        background: transparent;
+        color: #ccc;
+        border: 1px solid #333;
+      }
+      
+      #dismiss-button:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      
+      @media (max-width: 480px) {
+        #pwa-install-prompt {
+          left: 10px;
+          right: 10px;
+        }
+      }
+    </style>
+  </body>
+</html>
