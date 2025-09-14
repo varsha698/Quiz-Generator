@@ -25,7 +25,7 @@ const quizAttemptSchema = new mongoose.Schema({
       required: true
     },
     timeSpent: {
-      type: Number, // in seconds
+      type: Number, 
       default: 0
     }
   }],
@@ -40,7 +40,7 @@ const quizAttemptSchema = new mongoose.Schema({
     default: 0
   },
   timeSpent: {
-    type: Number, // total time in seconds
+    type: Number, 
     required: true
   },
   completedAt: {
@@ -63,7 +63,6 @@ const quizAttemptSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient queries
 quizAttemptSchema.index({ userId: 1, quizId: 1 });
 quizAttemptSchema.index({ completedAt: -1 });
 

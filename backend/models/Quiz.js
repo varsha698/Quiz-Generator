@@ -81,7 +81,6 @@ const quizSchema = new mongoose.Schema({
   }
 }, { strict: false });
 
-// Update the updatedAt field before saving
 quizSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
