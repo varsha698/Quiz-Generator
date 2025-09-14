@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuizApiService, QuizItem, Quiz } from '../../services/quiz-api.service';
-
+import { QuizzesService} from '../../services/quizapi.service';
+import { QuizInfo } from 'src/app/models/quizapi';
 // QuizItem interface is now imported from the service
 
 @Component({
@@ -33,7 +34,7 @@ export class QuizGeneratorComponent {
   supportedFileTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
   maxFileSize = 10 * 1024 * 1024; // 10MB
 
-  constructor(public quizApiService: QuizApiService) {
+  constructor(public quizApiService: QuizApiService,public quizzesservice: QuizzesService) {
     // Check API connection on component init
     this.checkConnection();
     // Load existing quizzes
@@ -593,11 +594,11 @@ Charts and graphs are powerful tools for learning and assessment, providing conc
     }
   }
 
-  async saveIndividualQuiz(quiz: Quiz, quizIndex: number) {
+  async saveIndividualQuiz(quiz: QuizInfo, quizIndex: number) {
     try {
       // The quiz is already saved in MongoDB when generated
       // This method can be used for re-saving or updating
-      await this.quizApiService.updateQuiz(quiz._id!, quiz).toPromise();
+      await this.quizzesservice.update(quiz.id, quiz).toPromise();
       alert(`Quiz "${quiz.name}" updated successfully!`);
     } catch (error) {
       console.error('Error saving quiz:', error);
