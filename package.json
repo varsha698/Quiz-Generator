@@ -132,7 +132,7 @@
     "husky": "^9.1.7",
     "jest": "^30.0.4",
     "jest-junit": "^16.0.0",
-    "jest-preset-angular": "^14.6.0",
+    "jest-preset-angular": "^15.0.2",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "source-map-explorer": "^2.5.3",
